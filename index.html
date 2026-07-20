@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Tap &amp; Can Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#180f08; --bg-2:#1f150c;
+    --surface:#251a10; --surface-2:#2d2013; --surface-3:#140d06;
+    --line:#3a2a19; --line-b:#4a3720;
+    --brass:#c8973e; --brass-dim:#9a7431;
+    --foam:#f3e9d2;
+    --ink:#ede3d0; --ink-2:#c3b39a; --ink-faint:#8b7a63;
+    --warn:#e0a13a; --alert:#df5b3f; --ok:#7fae6a;
+    --r:16px;
+    --display:'Fraunces',Georgia,serif;
+    --sans:'Inter',system-ui,sans-serif;
+    --mono:'Space Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    min-height:100dvh;
+    background:radial-gradient(120% 80% at 50% -10%, #2a1b0f 0%, var(--bg) 55%, #120b05 100%);
+    color:var(--ink); font-family:var(--sans); -webkit-font-smoothing:antialiased;
+    display:flex; flex-direction:column;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .wrap{width:100%;max-width:820px;margin:0 auto;flex:1;display:flex;flex-direction:column;padding:20px 16px 10px}
+
+  /* masthead */
+  .mast{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;padding-bottom:16px;border-bottom:1px solid var(--line);position:relative}
+  .mast::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--brass-dim),transparent);opacity:.6}
+  .brand{min-width:0}
+  .kicker{font-family:var(--mono);font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:var(--brass);display:block;margin-bottom:4px}
+  .wordmark{font-family:var(--display);font-weight:600;font-size:clamp(30px,9vw,48px);line-height:.9;letter-spacing:-.01em;color:var(--foam);word-break:break-word}
+  .tagline{font-size:12px;color:var(--ink-faint);margin-top:6px}
+  .mast-right{display:flex;align-items:center;gap:9px;flex-shrink:0}
+  .stats{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+  .chip{display:flex;align-items:baseline;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 12px 6px 10px;white-space:nowrap}
+  .chip b{font-family:var(--display);font-weight:600;font-size:16px;color:var(--foam);line-height:1}
+  .chip span{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint)}
+  .gear{width:40px;height:40px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);border-radius:11px;color:var(--ink-2);cursor:pointer;transition:color .16s,border-color .16s}
+  .gear:hover{color:var(--foam);border-color:var(--brass-dim)}
+
+  main{flex:1;padding-top:20px}
+  .block{margin-bottom:26px}
+  .block-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .block-title{font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-2)}
+  .block-title i{display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--brass);transform:rotate(45deg);margin-right:9px;vertical-align:middle;box-shadow:0 0 0 3px #c8973e22}
+  .rule{flex:1;height:1px;background:var(--line)}
+
+  /* keezer */
+  .keezer{margin-bottom:20px}
+  .keezer-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px}
+  .keezer-name{font-family:var(--display);font-weight:600;font-size:18px;color:var(--foam);display:flex;align-items:baseline;gap:9px}
+  .keezer-name .fill{font-family:var(--mono);font-size:11px;color:var(--ink-faint);letter-spacing:.06em}
+  .add{display:inline-flex;align-items:center;gap:6px;background:transparent;color:var(--brass);border:1px solid var(--brass-dim);border-radius:999px;padding:6px 13px;font-family:var(--sans);font-weight:600;font-size:12px;cursor:pointer;transition:background .18s,color .18s,border-color .18s}
+  .add:hover{background:var(--brass);color:#211505;border-color:var(--brass)}
+  .add .pls{font-family:var(--mono);font-size:14px;line-height:1;margin-top:-1px}
+
+  .grid{display:grid;grid-template-columns:1fr;gap:12px}
+  @media(min-width:560px){.grid{grid-template-columns:1fr 1fr}}
+  @media(min-width:820px){.grid{grid-template-columns:1fr 1fr 1fr}}
+
+  /* card */
+  .card{background:linear-gradient(180deg,var(--surface-2),var(--surface));border:1px solid var(--line);border-radius:var(--r);padding:13px;display:flex;gap:13px;position:relative;overflow:hidden}
+  .card.kicked{opacity:.6}
+  .card.low{border-color:#7a5a2a}
+  .card.crit{border-color:#7a3529;box-shadow:0 0 0 1px #df5b3f22, 0 0 22px -8px #df5b3f66}
+
+  .tube{width:42px;flex-shrink:0;align-self:stretch;min-height:118px;border-radius:11px;background:linear-gradient(90deg,#0000001f,#ffffff10 18%,#ffffff06 50%,#0000002b);background-color:#120b05;border:1px solid #00000055;box-shadow:inset 0 0 0 1px #ffffff0d,inset 0 2px 6px #00000066;position:relative;overflow:hidden}
+  .card.crit .tube{box-shadow:inset 0 0 0 1px #df5b3f55,inset 0 2px 6px #00000066}
+  .liquid{position:absolute;left:0;right:0;bottom:0;height:0%;border-radius:0 0 10px 10px;transition:height .5s cubic-bezier(.22,1,.36,1)}
+  .liquid::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#ffffff30,transparent 26%,#00000030);border-radius:inherit}
+  .foam{position:absolute;left:0;right:0;top:-5px;height:9px;z-index:2;background:radial-gradient(3px 3px at 6px 3px,#fff9,transparent 60%),radial-gradient(3px 3px at 18px 6px,#fff8,transparent 60%),radial-gradient(3px 3px at 30px 2px,#fff7,transparent 60%),var(--foam);border-radius:6px;box-shadow:0 1px 3px #00000040}
+
+  .body{flex:1;min-width:0;display:flex;flex-direction:column}
+  .tapbadge{display:inline-block;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--brass);border:1px solid var(--brass-dim);border-radius:5px;padding:2px 6px;margin-bottom:6px;align-self:flex-start}
+  .name{font-family:var(--display);font-weight:600;font-size:18px;line-height:1.1;color:var(--foam);letter-spacing:-.01em;word-break:break-word}
+  .meta{font-size:12px;color:var(--ink-2);margin-top:3px;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+  .meta .dot{width:3px;height:3px;border-radius:50%;background:var(--ink-faint)}
+  .meta .abv{font-family:var(--mono);font-size:11px;color:var(--brass)}
+
+  .gauge{margin-top:auto;padding-top:11px}
+  .readout{display:flex;align-items:baseline;gap:7px;margin-bottom:4px;flex-wrap:wrap}
+  .readout b{font-family:var(--display);font-weight:600;font-size:23px;line-height:1;color:var(--foam)}
+  .card.crit .readout b{color:var(--alert)}
+  .card.low .readout b{color:var(--warn)}
+  .readout small{font-size:11px;color:var(--ink-faint)}
+  .status{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.16em;margin-bottom:9px;display:none}
+  .card.low .status{display:block;color:var(--warn)}
+  .card.crit .status{display:block;color:var(--alert)}
+  .card.kicked .status{display:block;color:var(--ink-faint)}
+
+  .sizes{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:9px}
+  .sizes .lab{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-right:2px}
+  .size{background:var(--surface-3);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-2);cursor:pointer;transition:background .14s,color .14s,border-color .14s;line-height:1}
+  .size:hover{color:var(--foam);border-color:var(--brass-dim)}
+  .size.on{background:#3a2a1655;border-color:var(--brass);color:var(--brass)}
+  .size:active{transform:scale(.95)}
+  .size:disabled{opacity:.4;cursor:not-allowed}
+
+  .row{display:flex;align-items:center;gap:7px}
+  .pour{flex:1;background:var(--brass);color:#241505;border:none;border-radius:10px;padding:9px 8px;font-family:var(--sans);font-weight:700;font-size:13px;cursor:pointer;transition:transform .08s,filter .18s,background .18s}
+  .pour:hover{filter:brightness(1.07)}
+  .pour:active{transform:scale(.97)}
+  .pour:disabled{background:var(--line);color:var(--ink-faint);cursor:not-allowed;filter:none}
+  .icobtn{width:34px;height:34px;flex-shrink:0;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);border-radius:9px;color:var(--ink-2);font-family:var(--mono);font-size:15px;font-weight:700;line-height:1;cursor:pointer;transition:background .16s,color .16s,border-color .16s}
+  .icobtn:hover{background:var(--surface-2);color:var(--foam);border-color:var(--brass-dim)}
+  .icobtn:disabled{opacity:.4;cursor:not-allowed}
+  .icobtn.edit{font-size:12px}
+
+  .ribbon{position:absolute;top:10px;right:-30px;transform:rotate(38deg);background:var(--alert);color:#1a0d07;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.18em;padding:3px 34px}
+  .card.out .ribbon{background:var(--ink-faint)}
+
+  /* empty tap slot */
+  .slot{border:1px dashed var(--line-b);border-radius:var(--r);min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:var(--ink-faint);cursor:pointer;background:#1c130a55;transition:border-color .18s,color .18s,background .18s;text-align:center;padding:14px}
+  .slot:hover{border-color:var(--brass-dim);color:var(--ink-2);background:#241a1055}
+  .slot .tno{font-family:var(--display);font-weight:600;font-size:20px;color:var(--ink-2)}
+  .slot .cta{font-size:12px}
+  .slot .plus{font-family:var(--mono);font-size:22px;color:var(--brass);line-height:1}
+
+  /* cans */
+  .canvis{width:44px;flex-shrink:0;align-self:center;display:flex;justify-content:center}
+  .can{width:34px;height:56px;border-radius:8px/6px;position:relative;background:linear-gradient(90deg,#00000022,#ffffff22 20%,#ffffff08 55%,#00000030);border:1px solid #00000044;box-shadow:inset 0 0 0 1px #ffffff12;overflow:hidden}
+  .can::before{content:"";position:absolute;left:4px;right:4px;top:2px;height:4px;border-radius:3px;background:#00000030;box-shadow:inset 0 1px 1px #ffffff20}
+  .can .fill{position:absolute;inset:0;top:8px}
+  .can .fill::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#ffffff28,transparent 30%,#00000028)}
+  .can-gauge{margin-top:auto;padding-top:11px}
+  .stepper{display:flex;align-items:center;gap:9px}
+  .stepper .val{font-family:var(--display);font-weight:600;font-size:24px;color:var(--foam);min-width:28px;text-align:center;line-height:1}
+  .stepper .val small{display:block;font-family:var(--sans);font-weight:400;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin-top:3px}
+  .stepper .grow{flex:1}
+
+  .empty{border:1px dashed var(--line);border-radius:var(--r);padding:20px 16px;text-align:center;color:var(--ink-faint);font-size:13px;line-height:1.5;grid-column:1/-1}
+  .empty b{color:var(--ink-2);font-weight:600;display:block;margin-bottom:3px}
+
+  footer{max-width:820px;margin:8px auto 0;width:100%;padding:14px 16px calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px}
+  footer .tag{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--ink-faint)}
+  footer a{color:var(--brass);text-decoration:none;font-size:12px;font-weight:500}
+  footer a:hover{text-decoration:underline}
+
+  /* modal */
+  .scrim{position:fixed;inset:0;background:#0a0603cc;backdrop-filter:blur(3px);display:none;align-items:flex-end;justify-content:center;z-index:50}
+  .scrim.show{display:flex}
+  @media(min-width:560px){.scrim.show{align-items:center;padding:20px}}
+  .sheet{width:100%;max-width:480px;background:linear-gradient(180deg,var(--surface-2),var(--surface));border:1px solid var(--line);border-radius:20px 20px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));max-height:92dvh;overflow-y:auto;transform:translateY(14px);opacity:0;transition:transform .28s cubic-bezier(.22,1,.36,1),opacity .2s}
+  @media(min-width:560px){.sheet{border-radius:20px}}
+  .scrim.show .sheet{transform:translateY(0);opacity:1}
+  .sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .sheet-title{font-family:var(--display);font-weight:600;font-size:22px;color:var(--foam)}
+  .x{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);font-size:20px;line-height:1;cursor:pointer}
+  .x:hover{color:var(--foam)}
+
+  .fgroup{border-top:1px solid var(--line);margin-top:6px;padding-top:14px}
+  .fgroup:first-of-type{border-top:none;margin-top:0;padding-top:0}
+  .fgroup-t{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass-dim);margin-bottom:12px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:7px;font-weight:600}
+  .field .hint{font-size:11px;color:var(--ink-faint);margin-top:5px;line-height:1.45;letter-spacing:0;text-transform:none;font-weight:400}
+  input[type=text],input[type=number],select{width:100%;background:var(--surface-3);border:1px solid var(--line);border-radius:10px;padding:11px 12px;color:var(--ink);font-family:var(--sans);font-size:15px;transition:border-color .16s,box-shadow .16s}
+  select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink-faint) 50%),linear-gradient(135deg,var(--ink-faint) 50%,transparent 50%);background-position:calc(100% - 18px) 18px,calc(100% - 13px) 18px;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:34px}
+  input:focus,select:focus{outline:none;border-color:var(--brass);box-shadow:0 0 0 3px #c8973e26}
+  .two{display:flex;gap:12px}
+  .two .field{flex:1}
+
+  .swatches{display:flex;flex-wrap:wrap;gap:9px}
+  .swatch{width:32px;height:32px;border-radius:9px;cursor:pointer;position:relative;border:2px solid transparent;box-shadow:inset 0 0 0 1px #00000040,inset 0 -6px 8px #00000030;transition:transform .12s}
+  .swatch:hover{transform:translateY(-2px)}
+  .swatch.sel{box-shadow:inset 0 0 0 1px #00000040,0 0 0 2px #c8973e88}
+  .swatch.sel::after{content:"";position:absolute;inset:0;border-radius:6px;box-shadow:inset 0 0 0 2px #ffffff66}
+
+  .schips{display:flex;flex-wrap:wrap;gap:7px}
+  .schip{background:var(--surface-3);border:1px solid var(--line);border-radius:9px;padding:8px 12px;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink-2);cursor:pointer;transition:background .14s,color .14s,border-color .14s}
+  .schip:hover{color:var(--foam);border-color:var(--brass-dim)}
+  .schip.on{background:#3a2a1655;border-color:var(--brass);color:var(--brass)}
+
+  .weighbox{background:#1a110855;border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:2px}
+  .weighbox .est{font-family:var(--mono);font-size:12px;color:var(--ok);margin-top:10px;min-height:16px;letter-spacing:.02em}
+  .weighbox .est.bad{color:var(--alert)}
+  .inline-btn{background:var(--surface-2);border:1px solid var(--brass-dim);color:var(--brass);border-radius:9px;padding:11px 14px;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap}
+  .inline-btn:hover{background:var(--brass);color:#211505}
+
+  .kz-row{display:flex;gap:9px;align-items:center;margin-bottom:9px}
+  .kz-row input[type=text]{flex:1}
+  .kz-row input[type=number]{width:74px;flex:none;text-align:center}
+  .kz-row .rm{width:38px;height:44px;flex:none;border:1px solid #4a2a20;background:transparent;color:var(--alert);border-radius:9px;font-size:15px;cursor:pointer}
+  .kz-row .rm.arm{background:var(--alert);color:#1a0d07;border-color:var(--alert)}
+  .kz-add{width:100%;background:transparent;border:1px dashed var(--brass-dim);color:var(--brass);border-radius:10px;padding:11px;font-weight:600;font-size:13px;cursor:pointer;margin-top:2px}
+  .kz-add:hover{background:#c8973e11}
+
+  .warn{color:var(--alert);font-size:12px;margin:-4px 0 12px;display:none}
+  .warn.show{display:block}
+  .sheet-actions{display:flex;gap:10px;margin-top:6px}
+  .btn{flex:1;border:none;border-radius:11px;padding:13px;font-family:var(--sans);font-weight:700;font-size:14px;cursor:pointer;transition:filter .16s}
+  .btn-primary{background:var(--brass);color:#241505}
+  .btn-primary:hover{filter:brightness(1.07)}
+  .del{width:100%;margin-top:12px;background:transparent;border:1px solid #4a2a20;color:var(--alert);border-radius:11px;padding:11px;font-weight:600;font-size:13px;cursor:pointer;transition:background .16s}
+  .del:hover{background:#df5b3f14}
+  .del.arm{background:var(--alert);color:#1a0d07;border-color:var(--alert)}
+
+  /* landscape / short screens */
+  @media (orientation:landscape) and (max-height:560px){
+    .wrap{padding-top:12px}
+    .mast{padding-bottom:12px}
+    .wordmark{font-size:clamp(26px,6vh,38px)}
+    .tagline{display:none}
+    main{padding-top:14px}
+    .block{margin-bottom:18px}
+    .tube{min-height:104px}
+  }
+  @media (prefers-reduced-motion: reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="mast">
+      <div class="brand">
+        <span class="kicker">Keezer Board</span>
+        <div class="wordmark" id="wordmark">Augustino</div>
+        <div class="tagline">What&rsquo;s pouring &amp; what&rsquo;s cold</div>
+      </div>
+      <div class="mast-right">
+        <div class="stats">
+          <div class="chip"><b id="stat-taps">0</b><span>On tap</span></div>
+          <div class="chip"><b id="stat-cans">0</b><span>Cans</span></div>
+        </div>
+        <button class="gear" data-action="settings" aria-label="Settings">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v2.6M12 18.9v2.6M4.5 4.5l1.9 1.9M17.6 17.6l1.9 1.9M2.5 12h2.6M18.9 12h2.6M4.5 19.5l1.9-1.9M17.6 6.4l1.9-1.9"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <section class="block">
+        <div class="block-head"><span class="block-title"><i></i>On Tap</span><span class="rule"></span></div>
+        <div id="keezers"></div>
+      </section>
+
+      <section class="block">
+        <div class="block-head"><span class="block-title"><i></i>Cans</span><span class="rule"></span>
+          <button class="add" data-action="add-can" style="margin-left:10px"><span class="pls">+</span>Add can</button>
+        </div>
+        <div class="grid" id="cans"></div>
+      </section>
+    </main>
+  </div>
+
+  <footer>
+    <span class="tag">APPADAY &middot; 074 &middot; UTILITY</span>
+    <a href="https://augustineiacopelli.github.io/appaday/">&larr; Back to portfolio</a>
+  </footer>
+
+  <div class="scrim" id="scrim">
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+      <div class="sheet-head">
+        <div class="sheet-title" id="sheet-title">Add keg</div>
+        <button class="x" data-action="close" aria-label="Close">&times;</button>
+      </div>
+      <div id="form"></div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  var KEY = "appaday_074_augustino_v2";
+  var OZG = 128;              // ounces per gallon
+  var DENSITY = 8.42;         // lb per gallon, beer ~1.010 SG
+  var POURS = [4,12,16,20,32];
+
+  var COLORS = [
+    {k:"straw",label:"Straw",css:"#f5d967"},{k:"gold",label:"Gold",css:"#e7b23c"},
+    {k:"hazy",label:"Hazy",css:"#eec74f"},{k:"amber",label:"Amber",css:"#cf8326"},
+    {k:"copper",label:"Copper",css:"#b25f1c"},{k:"ruby",label:"Ruby",css:"#8f3a1b"},
+    {k:"brown",label:"Brown",css:"#5e3a21"},{k:"stout",label:"Stout",css:"#2e1d12"},
+    {k:"pale",label:"Pale",css:"#efe6b0"},{k:"rose",label:"Rose",css:"#e0708a"}
+  ];
+  function colorCss(k){for(var i=0;i<COLORS.length;i++)if(COLORS[i].k===k)return COLORS[i].css;return COLORS[1].css;}
+
+  var KEG_TYPES = [
+    {k:"half",label:"1/2 barrel (15.5 gal)",gal:15.5,tare:29.7},
+    {k:"quarter",label:"1/4 barrel slim (7.75 gal)",gal:7.75,tare:23},
+    {k:"sixtel",label:"1/6 barrel sixtel (5.16 gal)",gal:5.16,tare:16.5},
+    {k:"corny",label:"Corny / homebrew (5 gal)",gal:5,tare:9},
+    {k:"custom",label:"Custom",gal:5,tare:10}
+  ];
+  function kegType(k){for(var i=0;i<KEG_TYPES.length;i++)if(KEG_TYPES[i].k===k)return KEG_TYPES[i];return KEG_TYPES[2];}
+
+  var STYLES = ["IPA","Hazy IPA","West Coast IPA","Double IPA","Pale Ale","Blonde Ale","Amber Ale","Brown Ale","Porter","Stout","Imperial Stout","Pilsner","Lager","Helles","Kolsch","Hefeweizen","Wheat","Witbier","Saison","Sour","Gose","Barleywine","Cider","Seltzer","Mead"];
+
+  function uid(){return "x"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+  function ci(v,lo,hi){v=Math.round(Number(v));if(isNaN(v))v=lo;if(v<lo)v=lo;if(v>hi)v=hi;return v;}
+  function cf(v,lo,hi){v=Number(v);if(isNaN(v))v=lo;if(v<lo)v=lo;if(v>hi)v=hi;return v;}
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
+  function gal(oz){return oz/OZG;}
+  function fmtGal(oz){var g=gal(oz);return (g>=10?g.toFixed(0):g.toFixed(1))+" gal";}
+
+  var state = load();
+
+  function load(){
+    try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&p.keezers&&p.kegs&&p.cans&&p.settings)return p;}}catch(e){}
+    return seed();
+  }
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+
+  function newKeg(o){
+    var t=kegType(o.type||"sixtel");var capOz=Math.round(t.gal*OZG);
+    return {id:uid(),keezerId:o.keezerId,tap:o.tap,name:o.name||"",style:o.style||"",abv:o.abv||"",color:o.color||"gold",
+      type:t.k,capacityOz:capOz,leftOz:(o.leftOz!=null?o.leftOz:capOz),pourOz:o.pourOz||state?state.settings.housePourOz:16,
+      tareLb:t.tare,couplerLb:0,density:DENSITY,grossLb:""};
+  }
+
+  function seed(){
+    var k1=uid(),k2=uid();
+    var s={housePourOz:16,nearEmptyPct:15};
+    var mk=function(o){var t=kegType(o.type);var cap=Math.round(t.gal*OZG);return {id:uid(),keezerId:o.kz,tap:o.tap,name:o.name,style:o.style,abv:o.abv,color:o.color,type:t.k,capacityOz:cap,leftOz:o.leftOz,pourOz:o.pourOz||16,tareLb:t.tare,couplerLb:0,density:DENSITY,grossLb:""};};
+    return {
+      settings:{name:"Augustino",housePourOz:16,nearEmptyPct:15},
+      keezers:[{id:k1,name:"Keezer 1",taps:6},{id:k2,name:"Garage Keezer",taps:4}],
+      kegs:[
+        mk({kz:k1,tap:1,name:"House Pale Ale",style:"Pale Ale",abv:"5.4",color:"gold",type:"sixtel",leftOz:410,pourOz:16}),
+        mk({kz:k1,tap:2,name:"Midnight Oats",style:"Stout",abv:"6.8",color:"stout",type:"sixtel",leftOz:92,pourOz:12}),
+        mk({kz:k1,tap:3,name:"Hazy Weekender",style:"Hazy IPA",abv:"6.7",color:"hazy",type:"corny",leftOz:520,pourOz:16}),
+        mk({kz:k2,tap:1,name:"Dry Pilsner",style:"Pilsner",abv:"4.8",color:"straw",type:"corny",leftOz:60,pourOz:12})
+      ],
+      cans:[
+        {id:uid(),name:"Cellar Saison",style:"Saison",abv:"6.2",color:"amber",count:5},
+        {id:uid(),name:"Cherry Gose",style:"Gose",abv:"4.4",color:"rose",count:2}
+      ]
+    };
+  }
+
+  /* ---------- render ---------- */
+  var keezersEl=document.getElementById("keezers");
+  var cansEl=document.getElementById("cans");
+
+  function pct(k){return k.capacityOz>0?Math.max(0,Math.min(100,Math.round(k.leftOz/k.capacityOz*100))):0;}
+  function statusClass(k){
+    if(k.leftOz<=0)return "kicked";
+    var p=k.leftOz/k.capacityOz*100;
+    var near=state.settings.nearEmptyPct;var low=Math.min(near*2,45);
+    if(p<=near)return "crit";
+    if(p<=low)return "low";
+    return "";
+  }
+  function statusLabel(cls){return cls==="crit"?"NEARLY EMPTY":cls==="low"?"RUNNING LOW":cls==="kicked"?"KICKED":"";}
+
+  function metaLine(tap,style,abv){
+    var bits=[];
+    if(tap!=null)bits.push('<span class="tapbadge">Tap '+tap+'</span>');
+    var m=[];
+    if(style)m.push('<span>'+esc(style)+'</span>');
+    if(abv!==""&&abv!=null)m.push('<span class="abv">'+esc(abv)+'% ABV</span>');
+    if(!m.length)m.push('<span style="color:var(--ink-faint)">No style set</span>');
+    return (tap!=null?'<span class="tapbadge">Tap '+tap+'</span>':'')+'<div class="meta">'+m.join('<span class="dot"></span>')+'</div>';
+  }
+
+  function kegCard(k){
+    var cls=statusClass(k);
+    var p=pct(k);
+    var css=colorCss(k.color);
+    var kicked=cls==="kicked";
+    var liquid=kicked?'':'<div class="liquid" style="height:'+p+'%;background:'+css+'"><div class="foam"></div></div>';
+    var poursLeft=k.pourOz>0?Math.floor(k.leftOz/k.pourOz):0;
+    var sizeBtns=POURS.map(function(sz){
+      return '<button class="size'+(sz===k.pourOz?' on':'')+'" data-action="pour" data-id="'+k.id+'" data-oz="'+sz+'"'+(kicked?' disabled':'')+'>'+sz+'</button>';
+    }).join("");
+    return ''+
+    '<div class="card '+cls+'">'+
+      (statusLabel(cls)&&kicked?'<div class="ribbon">KICKED</div>':'')+
+      '<div class="tube">'+liquid+'</div>'+
+      '<div class="body">'+
+        metaLine(k.tap,k.style,k.abv)+
+        '<div class="name">'+esc(k.name)+'</div>'+
+        '<div class="gauge">'+
+          '<div class="readout"><b>'+fmtGal(k.leftOz)+'</b><small>'+p+'% &middot; '+poursLeft+' more '+k.pourOz+'oz</small></div>'+
+          (statusLabel(cls)&&!kicked?'<div class="status">'+statusLabel(cls)+'</div>':'')+
+          '<div class="sizes"><span class="lab">Pour oz</span>'+sizeBtns+'</div>'+
+          '<div class="row">'+
+            '<button class="pour" data-action="pour" data-id="'+k.id+'" data-oz="'+k.pourOz+'"'+(kicked?' disabled':'')+'>'+(kicked?'Empty':'Pour '+k.pourOz+'oz')+'</button>'+
+            '<button class="icobtn" data-action="unpour" data-id="'+k.id+'" aria-label="Put one back">+</button>'+
+            '<button class="icobtn edit" data-action="edit-keg" data-id="'+k.id+'" aria-label="Edit keg">Edit</button>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }
+
+  function slot(kz,tap){
+    return '<div class="slot" data-action="fill-slot" data-kz="'+kz.id+'" data-tap="'+tap+'"><span class="plus">+</span><span class="tno">Tap '+tap+'</span><span class="cta">Tap to fill</span></div>';
+  }
+
+  function renderKeezers(){
+    if(!state.keezers.length){
+      keezersEl.innerHTML='<div class="empty"><b>No keezers yet</b>Open settings to add a keezer and set its tap count.</div>';
+      return;
+    }
+    var html="";
+    state.keezers.forEach(function(kz){
+      var kegsHere=state.kegs.filter(function(k){return k.keezerId===kz.id;});
+      var byTap={};kegsHere.forEach(function(k){if(k.tap>=1&&k.tap<=kz.taps&&!byTap[k.tap])byTap[k.tap]=k;});
+      var overflow=kegsHere.filter(function(k){return !(k.tap>=1&&k.tap<=kz.taps)||byTap[k.tap]!==k;});
+      var filled=0;var cells="";
+      for(var t=1;t<=kz.taps;t++){ if(byTap[t]){filled++;cells+=kegCard(byTap[t]);} else {cells+=slot(kz,t);} }
+      overflow.forEach(function(k){cells+=kegCard(k);});
+      html+=''+
+        '<div class="keezer">'+
+          '<div class="keezer-head">'+
+            '<div class="keezer-name">'+esc(kz.name)+'<span class="fill">'+filled+' / '+kz.taps+' taps</span></div>'+
+            '<button class="add" data-action="add-keg" data-kz="'+kz.id+'"><span class="pls">+</span>Add keg</button>'+
+          '</div>'+
+          '<div class="grid">'+cells+'</div>'+
+        '</div>';
+    });
+    keezersEl.innerHTML=html;
+  }
+
+  function canCard(c){
+    var out=c.count<=0;var css=colorCss(c.color);
+    var fill=out?'':'<div class="fill" style="background:'+css+'"></div>';
+    return ''+
+    '<div class="card'+(out?' out':'')+'">'+
+      (out?'<div class="ribbon">OUT</div>':'')+
+      '<div class="canvis"><div class="can">'+fill+'</div></div>'+
+      '<div class="body">'+
+        '<div class="name">'+esc(c.name)+'</div>'+metaLine(null,c.style,c.abv)+
+        '<div class="can-gauge"><div class="stepper">'+
+          '<button class="icobtn" data-action="can-minus" data-id="'+c.id+'" aria-label="Crack one"'+(out?' disabled':'')+'>&minus;</button>'+
+          '<div class="val">'+c.count+'<small>cans</small></div>'+
+          '<button class="icobtn" data-action="can-plus" data-id="'+c.id+'" aria-label="Add one">+</button>'+
+          '<span class="grow"></span>'+
+          '<button class="icobtn edit" data-action="edit-can" data-id="'+c.id+'" aria-label="Edit can">Edit</button>'+
+        '</div></div>'+
+      '</div>'+
+    '</div>';
+  }
+
+  function render(){
+    document.getElementById("wordmark").textContent=state.settings.name||"Keezer";
+    var filledTaps=0;
+    state.keezers.forEach(function(kz){var seen={};state.kegs.forEach(function(k){if(k.keezerId===kz.id&&k.tap>=1&&k.tap<=kz.taps&&!seen[k.tap]){seen[k.tap]=1;filledTaps++;}});});
+    document.getElementById("stat-taps").textContent=filledTaps;
+    document.getElementById("stat-cans").textContent=state.cans.reduce(function(s,c){return s+c.count;},0);
+    renderKeezers();
+    cansEl.innerHTML=state.cans.length?state.cans.map(canCard).join(""):'<div class="empty"><b>No cans yet</b>Add a can or a pack to your cold storage.</div>';
+  }
+
+  function findKeg(id){for(var i=0;i<state.kegs.length;i++)if(state.kegs[i].id===id)return state.kegs[i];}
+  function findCan(id){for(var i=0;i<state.cans.length;i++)if(state.cans[i].id===id)return state.cans[i];}
+  function findKz(id){for(var i=0;i<state.keezers.length;i++)if(state.keezers[i].id===id)return state.keezers[i];}
+  function freeTap(kzId){var kz=findKz(kzId);if(!kz)return 1;var used={};state.kegs.forEach(function(k){if(k.keezerId===kzId)used[k.tap]=1;});for(var t=1;t<=kz.taps;t++)if(!used[t])return t;return kz.taps;}
+
+  /* ---------- actions ---------- */
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("[data-action]");if(!t)return;
+    var a=t.getAttribute("data-action"),id=t.getAttribute("data-id");
+    if(a==="pour"){var k=findKeg(id);if(k){var oz=Number(t.getAttribute("data-oz"))||k.pourOz;k.pourOz=oz;k.leftOz=Math.max(0,k.leftOz-oz);save();render();}return;}
+    if(a==="unpour"){var k2=findKeg(id);if(k2){k2.leftOz=Math.min(k2.capacityOz,k2.leftOz+k2.pourOz);save();render();}return;}
+    if(a==="can-minus"){var c=findCan(id);if(c){c.count=Math.max(0,c.count-1);save();render();}return;}
+    if(a==="can-plus"){var c2=findCan(id);if(c2){c2.count=Math.min(999,c2.count+1);save();render();}return;}
+    if(a==="add-keg"){openKeg(null,t.getAttribute("data-kz"),null);return;}
+    if(a==="fill-slot"){openKeg(null,t.getAttribute("data-kz"),Number(t.getAttribute("data-tap")));return;}
+    if(a==="edit-keg"){openKeg(findKeg(id),null,null);return;}
+    if(a==="add-can"){openCan(null);return;}
+    if(a==="edit-can"){openCan(findCan(id));return;}
+    if(a==="settings"){openSettings();return;}
+    if(a==="close"){closeSheet();return;}
+    if(a==="save-keg"){commitKeg();return;}
+    if(a==="save-can"){commitCan();return;}
+    if(a==="save-settings"){commitSettings();return;}
+    if(a==="del-keg"||a==="del-can"){armDel(t,a);return;}
+  });
+
+  var scrim=document.getElementById("scrim"),formEl=document.getElementById("form"),titleEl=document.getElementById("sheet-title");
+  function openSheet(){scrim.classList.add("show");document.body.style.overflow="hidden";}
+  function closeSheet(){scrim.classList.remove("show");document.body.style.overflow="";editKeg=null;editCan=null;}
+  scrim.addEventListener("click",function(e){if(e.target===scrim)closeSheet();});
+  document.addEventListener("keydown",function(e){if(e.key==="Escape"&&scrim.classList.contains("show"))closeSheet();});
+
+  function swatchRow(sel){return '<div class="swatches" id="swatches">'+COLORS.map(function(c){return '<button type="button" class="swatch'+(c.k===sel?' sel':'')+'" data-color="'+c.k+'" title="'+c.label+'" aria-label="'+c.label+'" style="background:'+c.css+'"></button>';}).join("")+'</div>';}
+  function wireSwatches(){var sw=document.getElementById("swatches");if(!sw)return;sw.addEventListener("click",function(e){var b=e.target.closest(".swatch");if(!b)return;pickedColor=b.getAttribute("data-color");Array.prototype.forEach.call(sw.children,function(ch){ch.classList.remove("sel");});b.classList.add("sel");});}
+  var pickedColor="gold";
+
+  /* ---------- keg form ---------- */
+  var editKeg=null;
+  function openKeg(item,kzId,tap){
+    editKeg=item?{id:item.id}:{id:null,kzId:kzId,tap:(tap!=null?tap:freeTap(kzId))};
+    var isEdit=!!item;
+    titleEl.textContent=isEdit?"Edit keg":"Add keg";
+    pickedColor=item?item.color:"gold";
+    var K=item||newKeg({keezerId:kzId,tap:editKeg.tap});
+    var kzOpts=state.keezers.map(function(kz){return '<option value="'+kz.id+'"'+((item?item.keezerId:kzId)===kz.id?" selected":"")+'>'+esc(kz.name)+'</option>';}).join("");
+    var curKz=item?item.keezerId:kzId;
+    var typeOpts=KEG_TYPES.map(function(tp){return '<option value="'+tp.k+'"'+(K.type===tp.k?" selected":"")+'>'+esc(tp.label)+'</option>';}).join("");
+    var pourChips=POURS.map(function(sz){return '<button type="button" class="schip'+(sz===K.pourOz?' on':'')+'" data-pour="'+sz+'">'+sz+' oz</button>';}).join("");
+    var remGal=(K.leftOz/OZG);
+    var dl='<datalist id="stylelist">'+STYLES.map(function(s){return '<option value="'+s+'"></option>';}).join("")+'</datalist>';
+
+    formEl.innerHTML=dl+
+      '<div class="fgroup"><div class="fgroup-t">Beer</div>'+
+        '<div class="field"><label for="k-name">Name</label><input type="text" id="k-name" maxlength="40" autocomplete="off" placeholder="e.g. House Pale Ale" value="'+(item?esc(item.name):"")+'"></div>'+
+        '<div class="two"><div class="field"><label for="k-style">Style</label><input type="text" id="k-style" list="stylelist" maxlength="30" autocomplete="off" placeholder="IPA, Stout&hellip;" value="'+(item?esc(item.style):"")+'"></div>'+
+        '<div class="field" style="flex:0 0 104px"><label for="k-abv">ABV %</label><input type="number" id="k-abv" min="0" max="99" step="0.1" inputmode="decimal" placeholder="5.4" value="'+(item&&item.abv!=null?esc(item.abv):"")+'"></div></div>'+
+        '<div class="field"><label>Pour color</label>'+swatchRow(pickedColor)+'</div>'+
+      '</div>'+
+      '<div class="fgroup"><div class="fgroup-t">Placement</div>'+
+        '<div class="two"><div class="field"><label for="k-kz">Keezer</label><select id="k-kz">'+kzOpts+'</select></div>'+
+        '<div class="field" style="flex:0 0 110px"><label for="k-tap">Tap #</label><select id="k-tap"></select></div></div>'+
+      '</div>'+
+      '<div class="fgroup"><div class="fgroup-t">Vessel</div>'+
+        '<div class="field"><label for="k-type">Keg type</label><select id="k-type">'+typeOpts+'</select></div>'+
+        '<div class="two"><div class="field"><label for="k-cap">Full volume (gal)</label><input type="number" id="k-cap" min="0.1" max="30" step="0.01" inputmode="decimal" value="'+(Math.round(K.capacityOz/OZG*100)/100)+'"></div>'+
+        '<div class="field"><label for="k-tare">Empty keg (lb)</label><input type="number" id="k-tare" min="0" max="99" step="0.1" inputmode="decimal" value="'+K.tareLb+'"></div></div>'+
+        '<div class="two"><div class="field"><label for="k-coupler">Coupler on scale (lb)</label><input type="number" id="k-coupler" min="0" max="10" step="0.1" inputmode="decimal" value="'+K.couplerLb+'"></div>'+
+        '<div class="field"><label for="k-density">Beer (lb/gal)</label><input type="number" id="k-density" min="7" max="10" step="0.01" inputmode="decimal" value="'+K.density+'"></div></div>'+
+        '<div class="hint" style="margin-top:-6px">Set the coupler weight only if it stayed on the keg while you weighed it. A Sankey coupler is about 1.7 lb; a ball-lock disconnect is negligible.</div>'+
+      '</div>'+
+      '<div class="fgroup"><div class="fgroup-t">How full is it</div>'+
+        '<div class="field"><label for="k-rem">Remaining (gal)</label><div class="two"><input type="number" id="k-rem" min="0" max="30" step="0.01" inputmode="decimal" value="'+(Math.round(remGal*100)/100)+'"><button type="button" class="inline-btn" id="k-full" style="flex:0 0 auto">Fill</button></div></div>'+
+        '<div class="weighbox"><div class="field" style="margin-bottom:0"><label for="k-gross">Weigh it: total weight on the scale (lb)</label><div class="two"><input type="number" id="k-gross" min="0" max="200" step="0.1" inputmode="decimal" placeholder="e.g. 38.5" value="'+(item&&item.grossLb!=null?esc(item.grossLb):"")+'"><button type="button" class="inline-btn" id="k-est" style="flex:0 0 auto">Estimate</button></div></div><div class="est" id="k-est-out"></div></div>'+
+      '</div>'+
+      '<div class="fgroup"><div class="fgroup-t">Default pour</div>'+
+        '<div class="field" style="margin-bottom:4px"><div class="schips" id="k-pours">'+pourChips+'</div></div>'+
+      '</div>'+
+      '<div class="warn" id="k-warn">Give it a name first.</div>'+
+      '<div class="sheet-actions"><button class="btn btn-primary" data-action="save-keg">'+(isEdit?"Save changes":"Add to board")+'</button></div>'+
+      (isEdit?'<button class="del" data-action="del-keg">Remove keg from board</button>':"");
+
+    wireSwatches();
+    kegPourSel=K.pourOz;
+    var pw=document.getElementById("k-pours");
+    pw.addEventListener("click",function(e){var b=e.target.closest(".schip");if(!b)return;kegPourSel=Number(b.getAttribute("data-pour"));Array.prototype.forEach.call(pw.children,function(ch){ch.classList.remove("on");});b.classList.add("on");});
+
+    populateTaps(curKz,item?item.tap:editKeg.tap,item);
+    document.getElementById("k-kz").addEventListener("change",function(){populateTaps(this.value,null,item);});
+
+    var typeSel=document.getElementById("k-type");
+    typeSel.addEventListener("change",function(){var tp=kegType(this.value);document.getElementById("k-cap").value=tp.gal;document.getElementById("k-tare").value=tp.tare;});
+    document.getElementById("k-full").addEventListener("click",function(){document.getElementById("k-rem").value=Number(document.getElementById("k-cap").value)||0;document.getElementById("k-est-out").textContent="";});
+    document.getElementById("k-est").addEventListener("click",estimate);
+
+    openSheet();
+    setTimeout(function(){var n=document.getElementById("k-name");if(n&&!isEdit)n.focus();},60);
+  }
+  var kegPourSel=16;
+
+  function populateTaps(kzId,keep,item){
+    var kz=findKz(kzId);var sel=document.getElementById("k-tap");if(!sel||!kz)return;
+    var used={};state.kegs.forEach(function(k){if(k.keezerId===kzId&&(!item||k.id!==item.id))used[k.tap]=1;});
+    var opts="";var chosen=keep;
+    if(chosen==null||used[chosen]){for(var t=1;t<=kz.taps;t++){if(!used[t]){chosen=t;break;}}}
+    for(var t=1;t<=kz.taps;t++){var taken=used[t]&&t!==chosen;opts+='<option value="'+t+'"'+(t===chosen?" selected":"")+(taken?" disabled":"")+'>Tap '+t+(taken?" (taken)":"")+'</option>';}
+    sel.innerHTML=opts;
+  }
+
+  function estimate(){
+    var gross=Number(document.getElementById("k-gross").value);
+    var tare=Number(document.getElementById("k-tare").value)||0;
+    var coup=Number(document.getElementById("k-coupler").value)||0;
+    var dens=Number(document.getElementById("k-density").value)||DENSITY;
+    var cap=Number(document.getElementById("k-cap").value)||0;
+    var out=document.getElementById("k-est-out");
+    if(!gross||isNaN(gross)){out.className="est bad";out.textContent="Enter the scale reading first.";return;}
+    var beerLb=gross-tare-coup;
+    if(beerLb<0){out.className="est bad";out.textContent="That is below the empty keg weight. Check the tare or coupler figures.";document.getElementById("k-rem").value=0;return;}
+    var g=beerLb/dens;if(cap&&g>cap)g=cap;
+    var p=cap>0?Math.round(g/cap*100):0;
+    document.getElementById("k-rem").value=Math.round(g*100)/100;
+    out.className="est";out.textContent="Estimated "+(Math.round(g*10)/10)+" gal left ("+p+"% full).";
+  }
+
+  function commitKeg(){
+    if(!editKeg)return;
+    var name=(document.getElementById("k-name").value||"").trim();
+    if(!name){document.getElementById("k-warn").classList.add("show");document.getElementById("k-name").focus();return;}
+    var style=(document.getElementById("k-style").value||"").trim();
+    var abvRaw=(document.getElementById("k-abv").value||"").trim();
+    var abv=abvRaw===""?"":String(Math.round(cf(abvRaw,0,99)*10)/10);
+    var kzId=document.getElementById("k-kz").value;
+    var tap=Number(document.getElementById("k-tap").value)||1;
+    var capGal=cf(document.getElementById("k-cap").value,0.1,30);
+    var capOz=Math.round(capGal*OZG);
+    var remGal=cf(document.getElementById("k-rem").value,0,capGal);
+    var leftOz=Math.round(remGal*OZG);
+    var tare=cf(document.getElementById("k-tare").value,0,99);
+    var coup=cf(document.getElementById("k-coupler").value,0,10);
+    var dens=cf(document.getElementById("k-density").value,7,10);
+    var gross=(document.getElementById("k-gross").value||"").trim();
+    var type=document.getElementById("k-type").value;
+
+    if(editKeg.id){
+      var k=findKeg(editKeg.id);
+      k.name=name;k.style=style;k.abv=abv;k.color=pickedColor;k.keezerId=kzId;k.tap=tap;
+      k.type=type;k.capacityOz=capOz;k.leftOz=leftOz;k.tareLb=tare;k.couplerLb=coup;k.density=dens;k.grossLb=gross;k.pourOz=kegPourSel;
+    }else{
+      state.kegs.push({id:uid(),keezerId:kzId,tap:tap,name:name,style:style,abv:abv,color:pickedColor,type:type,capacityOz:capOz,leftOz:leftOz,pourOz:kegPourSel,tareLb:tare,couplerLb:coup,density:dens,grossLb:gross});
+    }
+    save();render();closeSheet();
+  }
+
+  /* ---------- can form ---------- */
+  var editCan=null;
+  function openCan(item){
+    editCan=item?{id:item.id}:{id:null};
+    var isEdit=!!item;titleEl.textContent=isEdit?"Edit can":"Add can";pickedColor=item?item.color:"hazy";
+    var dl='<datalist id="stylelist">'+STYLES.map(function(s){return '<option value="'+s+'"></option>';}).join("")+'</datalist>';
+    formEl.innerHTML=dl+
+      '<div class="field"><label for="c-name">Name</label><input type="text" id="c-name" maxlength="40" autocomplete="off" placeholder="e.g. Cellar Saison" value="'+(item?esc(item.name):"")+'"></div>'+
+      '<div class="two"><div class="field"><label for="c-style">Style</label><input type="text" id="c-style" list="stylelist" maxlength="30" autocomplete="off" placeholder="Saison, Gose&hellip;" value="'+(item?esc(item.style):"")+'"></div>'+
+      '<div class="field" style="flex:0 0 104px"><label for="c-abv">ABV %</label><input type="number" id="c-abv" min="0" max="99" step="0.1" inputmode="decimal" placeholder="6.2" value="'+(item&&item.abv!=null?esc(item.abv):"")+'"></div></div>'+
+      '<div class="field"><label>Pour color</label>'+swatchRow(pickedColor)+'</div>'+
+      '<div class="field"><label for="c-count">Cans on hand</label><input type="number" id="c-count" min="0" max="999" inputmode="numeric" value="'+(item?item.count:4)+'"></div>'+
+      '<div class="warn" id="c-warn">Give it a name first.</div>'+
+      '<div class="sheet-actions"><button class="btn btn-primary" data-action="save-can">'+(isEdit?"Save changes":"Add to board")+'</button></div>'+
+      (isEdit?'<button class="del" data-action="del-can">Remove can from board</button>':"");
+    wireSwatches();openSheet();
+    setTimeout(function(){var n=document.getElementById("c-name");if(n&&!isEdit)n.focus();},60);
+  }
+  function commitCan(){
+    if(!editCan)return;
+    var name=(document.getElementById("c-name").value||"").trim();
+    if(!name){document.getElementById("c-warn").classList.add("show");document.getElementById("c-name").focus();return;}
+    var style=(document.getElementById("c-style").value||"").trim();
+    var abvRaw=(document.getElementById("c-abv").value||"").trim();
+    var abv=abvRaw===""?"":String(Math.round(cf(abvRaw,0,99)*10)/10);
+    var count=ci(document.getElementById("c-count").value,0,999);
+    if(editCan.id){var c=findCan(editCan.id);c.name=name;c.style=style;c.abv=abv;c.color=pickedColor;c.count=count;}
+    else{state.cans.push({id:uid(),name:name,style:style,abv:abv,color:pickedColor,count:count});}
+    save();render();closeSheet();
+  }
+
+  function armDel(btn,kind){
+    if(!btn.classList.contains("arm")){btn.classList.add("arm");btn.textContent="Tap again to remove";return;}
+    if(kind==="del-keg"&&editKeg&&editKeg.id){state.kegs=state.kegs.filter(function(k){return k.id!==editKeg.id;});}
+    if(kind==="del-can"&&editCan&&editCan.id){state.cans=state.cans.filter(function(c){return c.id!==editCan.id;});}
+    save();render();closeSheet();
+  }
+
+  /* ---------- settings ---------- */
+  var tmpKeezers=[];
+  function openSettings(){
+    editKeg=null;editCan=null;titleEl.textContent="Settings";
+    tmpKeezers=state.keezers.map(function(kz){return {id:kz.id,name:kz.name,taps:kz.taps,remove:false};});
+    settingsPour=state.settings.housePourOz;
+    var pourChips=POURS.map(function(sz){return '<button type="button" class="schip'+(sz===settingsPour?' on':'')+'" data-spour="'+sz+'">'+sz+' oz</button>';}).join("");
+    formEl.innerHTML=
+      '<div class="fgroup"><div class="fgroup-t">Establishment</div>'+
+        '<div class="field"><label for="s-name">Bar or brewery name</label><input type="text" id="s-name" maxlength="30" autocomplete="off" value="'+esc(state.settings.name)+'"></div>'+
+      '</div>'+
+      '<div class="fgroup"><div class="fgroup-t">Pouring</div>'+
+        '<div class="field"><label>House pour size</label><div class="schips" id="s-pours">'+pourChips+'</div><div class="hint">The default glass size for a new keg and the pour the big button uses.</div></div>'+
+        '<div class="field"><label for="s-near">Warn when a keg drops below (%)</label><input type="number" id="s-near" min="1" max="50" inputmode="numeric" value="'+state.settings.nearEmptyPct+'"><div class="hint">Kegs turn red at this level. They turn amber at twice this level as a heads-up.</div></div>'+
+      '</div>'+
+      '<div class="fgroup"><div class="fgroup-t">Keezers &amp; taps</div>'+
+        '<div id="s-keezers"></div>'+
+        '<button type="button" class="kz-add" id="s-add-kz">+ Add a keezer</button>'+
+        '<div class="hint" style="margin-top:8px">Removing a keezer also removes the kegs on its taps.</div>'+
+      '</div>'+
+      '<div class="sheet-actions"><button class="btn btn-primary" data-action="save-settings">Save settings</button></div>';
+    var sp=document.getElementById("s-pours");
+    sp.addEventListener("click",function(e){var b=e.target.closest(".schip");if(!b)return;settingsPour=Number(b.getAttribute("data-spour"));Array.prototype.forEach.call(sp.children,function(ch){ch.classList.remove("on");});b.classList.add("on");});
+    document.getElementById("s-add-kz").addEventListener("click",function(){tmpKeezers.push({id:uid(),name:"Keezer "+(tmpKeezers.length+1),taps:6,remove:false,isNew:true});renderKzRows();});
+    renderKzRows();
+    openSheet();
+  }
+  var settingsPour=16;
+
+  function renderKzRows(){
+    var host=document.getElementById("s-keezers");
+    host.innerHTML=tmpKeezers.filter(function(k){return !k.remove;}).map(function(k){
+      return '<div class="kz-row" data-kzid="'+k.id+'">'+
+        '<input type="text" class="kz-nm" maxlength="24" value="'+esc(k.name)+'" placeholder="Keezer name">'+
+        '<input type="number" class="kz-tp" min="1" max="24" inputmode="numeric" value="'+k.taps+'" title="Taps" aria-label="Number of taps">'+
+        '<button type="button" class="rm" data-kzrm="'+k.id+'" aria-label="Remove keezer">&times;</button>'+
+      '</div>';
+    }).join("");
+    host.querySelectorAll(".kz-nm").forEach(function(inp){inp.addEventListener("input",function(){var row=this.closest(".kz-row");syncRow(row);});});
+    host.querySelectorAll(".kz-tp").forEach(function(inp){inp.addEventListener("input",function(){var row=this.closest(".kz-row");syncRow(row);});});
+    host.querySelectorAll(".rm").forEach(function(btn){btn.addEventListener("click",function(){
+      if(!this.classList.contains("arm")){this.classList.add("arm");this.innerHTML="&#10003;";return;}
+      var id=this.getAttribute("data-kzrm");for(var i=0;i<tmpKeezers.length;i++)if(tmpKeezers[i].id===id)tmpKeezers[i].remove=true;renderKzRows();
+    });});
+  }
+  function syncRow(row){var id=row.getAttribute("data-kzid");for(var i=0;i<tmpKeezers.length;i++)if(tmpKeezers[i].id===id){tmpKeezers[i].name=row.querySelector(".kz-nm").value;tmpKeezers[i].taps=ci(row.querySelector(".kz-tp").value,1,24);}}
+
+  function commitSettings(){
+    document.getElementById("s-keezers").querySelectorAll(".kz-row").forEach(function(row){syncRow(row);});
+    state.settings.name=(document.getElementById("s-name").value||"").trim()||"Keezer";
+    state.settings.housePourOz=settingsPour;
+    state.settings.nearEmptyPct=ci(document.getElementById("s-near").value,1,50);
+    var removedIds={};tmpKeezers.forEach(function(k){if(k.remove)removedIds[k.id]=1;});
+    state.kegs=state.kegs.filter(function(kg){return !removedIds[kg.keezerId];});
+    var kept=tmpKeezers.filter(function(k){return !k.remove;}).map(function(k){return {id:k.id,name:(k.name||"").trim()||"Keezer",taps:ci(k.taps,1,24)};});
+    state.keezers=kept;
+    save();render();closeSheet();
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
