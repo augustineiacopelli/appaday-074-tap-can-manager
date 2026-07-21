@@ -293,7 +293,7 @@
   ];
   function kegType(k){for(var i=0;i<KEG_TYPES.length;i++)if(KEG_TYPES[i].k===k)return KEG_TYPES[i];return KEG_TYPES[2];}
 
-  var STYLES = ["IPA","Hazy IPA","West Coast IPA","Double IPA","Pale Ale","Blonde Ale","Amber Ale","Brown Ale","Porter","Stout","Imperial Stout","Pilsner","Lager","Helles","Kolsch","Hefeweizen","Wheat","Witbier","Saison","Sour","Gose","Barleywine","Cider","Seltzer","Mead"];
+  var STYLES = ["1A American Light Lager","1B American Lager","1C Cream Ale","1D American Wheat Beer","2A International Pale Lager","2B International Amber Lager","2C International Dark Lager","3A Czech Pale Lager","3B Czech Premium Pale Lager","3C Czech Amber Lager","3D Czech Dark Lager","4A Munich Helles","4B Festbier","4C Helles Bock","5A German Leichtbier","5B Kolsch","5C German Helles Exportbier","5D German Pils","6A Marzen","6B Rauchbier","6C Dunkles Bock","7A Vienna Lager","7B Altbier","8A Munich Dunkel","8B Schwarzbier","9A Doppelbock","9B Eisbock","9C Baltic Porter","10A Weissbier","10B Dunkles Weissbier","10C Weizenbock","11A Ordinary Bitter","11B Best Bitter","11C Strong Bitter","12A British Golden Ale","12B Australian Sparkling Ale","12C English IPA","13A Dark Mild","13B British Brown Ale","13C English Porter","14A Scottish Light","14B Scottish Heavy","14C Scottish Export","15A Irish Red Ale","15B Irish Stout","15C Irish Extra Stout","16A Sweet Stout","16B Oatmeal Stout","16C Tropical Stout","16D Foreign Extra Stout","17A British Strong Ale","17B Old Ale","17C Wee Heavy","17D English Barley Wine","18A Blonde Ale","18B American Pale Ale","19A American Amber Ale","19B California Common","19C American Brown Ale","20A American Porter","20B American Stout","20C Imperial Stout","21A American IPA","21B Specialty IPA","21C Hazy IPA","22A Double IPA","22B American Strong Ale","22C American Barleywine","22D Wheatwine","23A Berliner Weisse","23B Flanders Red Ale","23C Oud Bruin","23D Lambic","23E Gueuze","23F Fruit Lambic","23G Gose","24A Witbier","24B Belgian Pale Ale","24C Biere de Garde","25A Belgian Blond Ale","25B Saison","25C Belgian Golden Strong Ale","26A Belgian Single","26B Belgian Dubbel","26C Belgian Tripel","26D Belgian Dark Strong Ale","27A Historical Beer: Kellerbier","27B Historical Beer: Kentucky Common","27C Historical Beer: Lichtenhainer","27D Historical Beer: London Brown Ale","27E Historical Beer: Piwo Grodziskie","27F Historical Beer: Pre-Prohibition Lager","27G Historical Beer: Pre-Prohibition Porter","27H Historical Beer: Roggenbier","27I Historical Beer: Sahti","28A Brett Beer","28B Mixed-Fermentation Sour Beer","28C Wild Specialty Beer","28D Straight Sour Beer","29A Fruit Beer","29B Fruit and Spice Beer","29C Specialty Fruit Beer","29D Grape Ale","30A Spice, Herb, or Vegetable Beer","30B Autumn Seasonal Beer","30C Winter Seasonal Beer","30D Specialty Spice Beer","31A Alternative Grain Beer","31B Alternative Sugar Beer","32A Classic Style Smoked Beer","32B Specialty Smoked Beer","33A Wood-Aged Beer","33B Specialty Wood-Aged Beer","34A Commercial Specialty Beer","34B Mixed-Style Beer","34C Experimental Beer"];
 
   function uid(){return "x"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
   function ci(v,lo,hi){v=Math.round(Number(v));if(isNaN(v))v=lo;if(v<lo)v=lo;if(v>hi)v=hi;return v;}
@@ -325,14 +325,14 @@
       settings:{name:"Augustino",housePourOz:16,nearEmptyPct:15},
       keezers:[{id:k1,name:"Keezer 1",taps:6},{id:k2,name:"Garage Keezer",taps:4}],
       kegs:[
-        mk({kz:k1,tap:1,name:"House Pale Ale",style:"Pale Ale",abv:"5.4",color:"gold",type:"sixtel",leftOz:410,pourOz:16}),
-        mk({kz:k1,tap:2,name:"Midnight Oats",style:"Stout",abv:"6.8",color:"stout",type:"sixtel",leftOz:92,pourOz:12}),
-        mk({kz:k1,tap:3,name:"Hazy Weekender",style:"Hazy IPA",abv:"6.7",color:"hazy",type:"corny",leftOz:520,pourOz:16}),
-        mk({kz:k2,tap:1,name:"Dry Pilsner",style:"Pilsner",abv:"4.8",color:"straw",type:"corny",leftOz:60,pourOz:12})
+        mk({kz:k1,tap:1,name:"House Pale Ale",style:"18B American Pale Ale",abv:"5.4",color:"gold",type:"sixtel",leftOz:410,pourOz:16}),
+        mk({kz:k1,tap:2,name:"Midnight Oats",style:"16B Oatmeal Stout",abv:"6.8",color:"stout",type:"sixtel",leftOz:92,pourOz:12}),
+        mk({kz:k1,tap:3,name:"Hazy Weekender",style:"21C Hazy IPA",abv:"6.7",color:"hazy",type:"corny",leftOz:520,pourOz:16}),
+        mk({kz:k2,tap:1,name:"Dry Pilsner",style:"5D German Pils",abv:"4.8",color:"straw",type:"corny",leftOz:60,pourOz:12})
       ],
       cans:[
-        {id:uid(),name:"Cellar Saison",style:"Saison",abv:"6.2",color:"amber",count:5},
-        {id:uid(),name:"Cherry Gose",style:"Gose",abv:"4.4",color:"rose",count:2}
+        {id:uid(),name:"Cellar Saison",style:"25B Saison",abv:"6.2",color:"amber",count:5},
+        {id:uid(),name:"Cherry Gose",style:"23G Gose",abv:"4.4",color:"rose",count:2}
       ]
     };
   }
@@ -506,7 +506,7 @@
     formEl.innerHTML=dl+
       '<div class="fgroup"><div class="fgroup-t">Beer</div>'+
         '<div class="field"><label for="k-name">Name</label><input type="text" id="k-name" maxlength="40" autocomplete="off" placeholder="e.g. House Pale Ale" value="'+(item?esc(item.name):"")+'"></div>'+
-        '<div class="two"><div class="field"><label for="k-style">Style</label><input type="text" id="k-style" list="stylelist" maxlength="30" autocomplete="off" placeholder="IPA, Stout&hellip;" value="'+(item?esc(item.style):"")+'"></div>'+
+        '<div class="two"><div class="field"><label for="k-style">Style</label><input type="text" id="k-style" list="stylelist" maxlength="50" autocomplete="off" placeholder="IPA, Stout&hellip;" value="'+(item?esc(item.style):"")+'"></div>'+
         '<div class="field" style="flex:0 0 104px"><label for="k-abv">ABV %</label><input type="number" id="k-abv" min="0" max="99" step="0.1" inputmode="decimal" placeholder="5.4" value="'+(item&&item.abv!=null?esc(item.abv):"")+'"></div></div>'+
         '<div class="field"><label>Pour color</label>'+swatchRow(pickedColor)+'</div>'+
       '</div>'+
@@ -613,7 +613,7 @@
     var dl='<datalist id="stylelist">'+STYLES.map(function(s){return '<option value="'+s+'"></option>';}).join("")+'</datalist>';
     formEl.innerHTML=dl+
       '<div class="field"><label for="c-name">Name</label><input type="text" id="c-name" maxlength="40" autocomplete="off" placeholder="e.g. Cellar Saison" value="'+(item?esc(item.name):"")+'"></div>'+
-      '<div class="two"><div class="field"><label for="c-style">Style</label><input type="text" id="c-style" list="stylelist" maxlength="30" autocomplete="off" placeholder="Saison, Gose&hellip;" value="'+(item?esc(item.style):"")+'"></div>'+
+      '<div class="two"><div class="field"><label for="c-style">Style</label><input type="text" id="c-style" list="stylelist" maxlength="50" autocomplete="off" placeholder="Saison, Gose&hellip;" value="'+(item?esc(item.style):"")+'"></div>'+
       '<div class="field" style="flex:0 0 104px"><label for="c-abv">ABV %</label><input type="number" id="c-abv" min="0" max="99" step="0.1" inputmode="decimal" placeholder="6.2" value="'+(item&&item.abv!=null?esc(item.abv):"")+'"></div></div>'+
       '<div class="field"><label>Pour color</label>'+swatchRow(pickedColor)+'</div>'+
       '<div class="field"><label for="c-count">Cans on hand</label><input type="number" id="c-count" min="0" max="999" inputmode="numeric" value="'+(item?item.count:4)+'"></div>'+
