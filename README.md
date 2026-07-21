@@ -26,6 +26,7 @@ A warm keezer-board aesthetic where the color comes from the beer itself. Deep e
 - Single-file vanilla HTML, CSS, and JavaScript. No frameworks, no build step.
 - Google Fonts (Fraunces, Inter, Space Mono) via CDN; no other external dependencies.
 - All state persists to `localStorage`, wrapped in try/catch.
+- The style field suggests the full BJCP 2021 style guidelines (116 styles), shown by number and name and ordered by category, with names transliterated to ASCII.
 - Fill visuals are pure CSS and HTML rather than canvas; the UI re-renders from state on every change; all user text is escaped before injection.
 - Delete uses a two-tap confirm rather than a native dialog.
 - Responsive from a 375px phone up through desktop, with a landscape-and-short-height layout that compacts the masthead and sight glasses; keyboard focus visible; reduced motion respected.
