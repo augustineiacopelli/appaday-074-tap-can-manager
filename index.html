@@ -370,7 +370,7 @@
     var liquid=kicked?'':'<div class="liquid" style="height:'+p+'%;background:'+css+'"><div class="foam"></div></div>';
     var poursLeft=k.pourOz>0?Math.floor(k.leftOz/k.pourOz):0;
     var sizeBtns=POURS.map(function(sz){
-      return '<button class="size'+(sz===k.pourOz?' on':'')+'" data-action="pour" data-id="'+k.id+'" data-oz="'+sz+'"'+(kicked?' disabled':'')+'>'+sz+'</button>';
+      return '<button class="size'+(sz===k.pourOz?' on':'')+'" data-action="set-pour" data-id="'+k.id+'" data-oz="'+sz+'">'+sz+'</button>';
     }).join("");
     return ''+
     '<div class="card '+cls+'">'+
@@ -461,6 +461,7 @@
   document.addEventListener("click",function(e){
     var t=e.target.closest("[data-action]");if(!t)return;
     var a=t.getAttribute("data-action"),id=t.getAttribute("data-id");
+    if(a==="set-pour"){var ks=findKeg(id);if(ks){var szOz=Number(t.getAttribute("data-oz"))||ks.pourOz;ks.pourOz=szOz;save();render();}return;}
     if(a==="pour"){var k=findKeg(id);if(k){var oz=Number(t.getAttribute("data-oz"))||k.pourOz;k.pourOz=oz;k.leftOz=Math.max(0,k.leftOz-oz);save();render();}return;}
     if(a==="unpour"){var k2=findKeg(id);if(k2){k2.leftOz=Math.min(k2.capacityOz,k2.leftOz+k2.pourOz);save();render();}return;}
     if(a==="can-minus"){var c=findCan(id);if(c){c.count=Math.max(0,c.count-1);save();render();}return;}
